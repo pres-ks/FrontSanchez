@@ -1,0 +1,428 @@
+@page "/users"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@using ConsumoAPI2.Wasm.Models
+
+<PageTitle>Gestión de Usuarios</PageTitle>
+
+<div class="container">
+    <h1 class="title">👥 Gestión de Usuarios</h1>
+
+    @if (showForm)
+    {
+        <div class="user-form">
+            <h3>@(editingUser?.Id > 0 ? "✏️ Editar Usuario" : "➕ Nuevo Usuario")</h3>
+            <div class="form-group">
+                <label>Nombre:</label>
+                <input @bind="currentUser.Name" class="form-control" placeholder="Ingrese el nombre" />
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input @bind="currentUser.Email" type="email" class="form-control" placeholder="correo@ejemplo.com" />
+            </div>
+            <div class="form-group">
+                <label>Rol:</label>
+                <input @bind="currentUser.Role" class="form-control" placeholder="Ej: Admin, Usuario, etc." />
+            </div>
+            <div class="form-actions">
+                <button @onclick="SaveUser" class="btn btn-primary">💾 Guardar</button>
+                <button @onclick="CancelEdit" class="btn btn-secondary">❌ Cancelar</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <button @onclick="ShowCreateForm" class="btn btn-success mb-3">➕ Agregar Usuario</button>
+    }
+
+    @if (loading)
+    {
+        <div class="loading">⏳ Cargando usuarios...</div>
+    }
+    else if (users == null || !users.Any())
+    {
+        <div class="empty-state">
+            <p>📭 No hay usuarios registrados</p>
+        </div>
+    }
+    else
+    {
+        <div class="users-grid">
+            @foreach (var user in users)
+            {
+                <div class="user-card">
+                    <div class="user-header">
+                        <h4>@user.Name</h4>
+                        <span class="user-role">@user.Role</span>
+                    </div>
+                    <div class="user-info">
+                        <p>📧 @user.Email</p>
+                        <p class="user-date">📅 Creado: @user.CreatedDate.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div class="user-actions">
+                        <button @onclick="() => EditUser(user)" class="btn btn-edit">✏️ Editar</button>
+                        <button @onclick="() => DeleteUser(user.Id)" class="btn btn-delete">🗑️ Eliminar</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-error">⚠️ @errorMessage</div>
+    }
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success">✅ @successMessage</div>
+    }
+</div>
+
+@code {
+    private List<User>? users;
+    private User currentUser = new User();
+    private User? editingUser = null;
+    private bool showForm = false;
+    private bool loading = true;
+    private string errorMessage = "";
+    private string successMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            loading = true;
+            errorMessage = "";
+            users = await Http.GetFromJsonAsync<List<User>>("api/users");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar usuarios: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void ShowCreateForm()
+    {
+        currentUser = new User();
+        editingUser = null;
+        showForm = true;
+        errorMessage = "";
+        successMessage = "";
+    }
+
+    private void EditUser(User user)
+    {
+        editingUser = user;
+        currentUser = new User
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Role = user.Role
+        };
+        showForm = true;
+        errorMessage = "";
+        successMessage = "";
+    }
+
+    private void CancelEdit()
+    {
+        showForm = false;
+        currentUser = new User();
+        editingUser = null;
+        errorMessage = "";
+        successMessage = "";
+    }
+
+    private async Task SaveUser()
+    {
+        try
+        {
+            errorMessage = "";
+            successMessage = "";
+
+            if (string.IsNullOrWhiteSpace(currentUser.Name) || string.IsNullOrWhiteSpace(currentUser.Email))
+            {
+                errorMessage = "El nombre y el email son obligatorios";
+                return;
+            }
+
+            if (editingUser?.Id > 0)
+            {
+                // Actualizar
+                var response = await Http.PutAsJsonAsync($"api/users/{currentUser.Id}", currentUser);
+                if (response.IsSuccessStatusCode)
+                {
+                    successMessage = "Usuario actualizado correctamente";
+                }
+                else
+                {
+                    errorMessage = "Error al actualizar el usuario";
+                }
+            }
+            else
+            {
+                // Crear
+                var response = await Http.PostAsJsonAsync("api/users", currentUser);
+                if (response.IsSuccessStatusCode)
+                {
+                    successMessage = "Usuario creado correctamente";
+                }
+                else
+                {
+                    errorMessage = "Error al crear el usuario";
+                }
+            }
+
+            await LoadUsers();
+            CancelEdit();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteUser(int id)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", "¿Está seguro de eliminar este usuario?"))
+            return;
+
+        try
+        {
+            errorMessage = "";
+            successMessage = "";
+
+            var response = await Http.DeleteAsync($"api/users/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                successMessage = "Usuario eliminado correctamente";
+                await LoadUsers();
+            }
+            else
+            {
+                errorMessage = "Error al eliminar el usuario";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+    }
+}
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .title {
+        font-size: 2.5rem;
+        color: #2c3e50;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .user-form {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    .user-form h3 {
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #229954;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+    }
+
+    .btn-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .mb-3 {
+        margin-bottom: 1rem;
+    }
+
+    .loading, .empty-state {
+        text-align: center;
+        padding: 3rem;
+        font-size: 1.2rem;
+        color: #7f8c8d;
+    }
+
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .user-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border-left: 4px solid #667eea;
+    }
+
+    .user-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .user-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .user-header h4 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.3rem;
+    }
+
+    .user-role {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .user-info {
+        margin-bottom: 1rem;
+        color: #555;
+    }
+
+    .user-info p {
+        margin: 0.5rem 0;
+    }
+
+    .user-date {
+        font-size: 0.9rem;
+        color: #95a5a6;
+    }
+
+    .user-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-edit {
+        background: #3498db;
+        color: white;
+        flex: 1;
+    }
+
+    .btn-edit:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: #e74c3c;
+        color: white;
+        flex: 1;
+    }
+
+    .btn-delete:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        font-weight: 600;
+    }
+
+    .alert-error {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .alert-success {
+        background: #27ae60;
+        color: white;
+    }
+</style>
