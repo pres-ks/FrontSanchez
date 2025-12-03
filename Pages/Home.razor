@@ -1,20 +1,20 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Inicio - DogFavorites</PageTitle>
+<PageTitle>Inicio - Gestión Usuarios</PageTitle>
 
 <div class="container-fluid p-0">
     <!-- Hero Section -->
     <div class="hero-section text-center d-flex flex-column justify-content-center align-items-center animate-fade-in">
-        <h1 class="display-3 fw-bold mb-3 text-primary">Descubre tu Compañero Ideal</h1>
+        <h1 class="display-3 fw-bold mb-3 text-primary">Gestión de Usuarios</h1>
         <p class="lead mb-5 text-muted" style="max-width: 600px;">
-            Explora cientos de razas de perros, aprende sobre sus orígenes y guarda tus favoritos en tu colección personal.
+            Administra el acceso, roles y perfiles de usuarios de manera eficiente, segura y centralizada.
         </p>
         <div class="d-flex gap-3">
-            <a href="favorites" class="btn btn-primary btn-lg shadow-lg">
-                <i class="bi bi-heart-fill me-2"></i> Ver Mis Favoritos
+            <a href="users" class="btn btn-primary btn-lg shadow-lg">
+                <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
             </a>
-            <a href="https://thedogapi.com/" target="_blank" class="btn btn-outline-secondary btn-lg">
-                <i class="bi bi-globe me-2"></i> The Dog API
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank" class="btn btn-secondary btn-lg">
+                <i class="bi bi-book me-2"></i> Documentación
             </a>
         </div>
     </div>
@@ -25,31 +25,31 @@
             <div class="col-md-4 animate-fade-in delay-100">
                 <div class="card h-100 glass-panel p-4 text-center hover-card">
                     <div class="icon-wrapper mb-3 text-primary">
-                        <i class="bi bi-search display-4"></i>
+                        <i class="bi bi-shield-lock display-4"></i>
                     </div>
-                    <h3 class="h4 fw-bold">Explora</h3>
-                    <p class="text-muted">Navega por una extensa base de datos de razas de perros de todo el mundo.</p>
+                    <h3 class="h4 fw-bold">Seguridad</h3>
+                    <p class="text-muted">Control de acceso robusto y protección de datos sensibles para todos los usuarios.</p>
                 </div>
             </div>
             <div class="col-md-4 animate-fade-in delay-200">
                 <div class="card h-100 glass-panel p-4 text-center hover-card">
                     <div class="card-body">
                         <div class="icon-wrapper mb-3 text-secondary">
-                            <i class="bi bi-heart display-4"></i>
+                            <i class="bi bi-person-gear display-4"></i>
                         </div>
-                        <h3 class="h4 fw-bold">Colecciona</h3>
-                        <p class="text-muted">Guarda las razas que más te gusten en tu lista personalizada de favoritos.</p>
+                        <h3 class="h4 fw-bold">Roles</h3>
+                        <p class="text-muted">Asignación flexible de roles y permisos para optimizar el flujo de trabajo.</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 animate-fade-in delay-300">
                 <div class="card h-100 glass-panel p-4 text-center hover-card">
                     <div class="card-body">
-                        <div class="icon-wrapper mb-3 text-warning">
-                            <i class="bi bi-info-circle display-4"></i>
+                        <div class="icon-wrapper mb-3 text-accent">
+                            <i class="bi bi-graph-up display-4"></i>
                         </div>
-                        <h3 class="h4 fw-bold">Aprende</h3>
-                        <p class="text-muted">Conoce detalles fascinantes sobre el origen y temperamento de cada raza.</p>
+                        <h3 class="h4 fw-bold">Eficiencia</h3>
+                        <p class="text-muted">Interfaz optimizada para una gestión rápida y sin complicaciones.</p>
                     </div>
                 </div>
             </div>
@@ -60,8 +60,7 @@
 <style>
     .hero-section {
         min-height: 60vh;
-        background: radial-gradient(circle at top right, rgba(108, 99, 255, 0.1), transparent 40%),
-                    radial-gradient(circle at bottom left, rgba(255, 101, 132, 0.1), transparent 40%);
+        /* Background handled globally */
     }
     
     .hover-card {
@@ -70,5 +69,6 @@
     
     .hover-card:hover {
         transform: translateY(-10px);
+        background: rgba(255, 255, 255, 0.05);
     }
 </style>
