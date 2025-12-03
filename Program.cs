@@ -8,7 +8,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Configuraci�n para producci�n/desarrollo
 var apiBase = builder.HostEnvironment.IsProduction()
-    ? "https://backend-c-production.up.railway.app"  // URL de tu API en Railway
+    ? "https://backsanchez-production.up.railway.app"  // URL de tu API en Railway
     : "http://localhost:5216";             // URL local de tu API
 
 builder.Services.AddScoped(sp => new HttpClient
